@@ -89,6 +89,7 @@ All symbols live under `Abderrahim\Nats`:
 | `request(name, subject, data, timeout)` | Synchronous request/reply, returns `array\|null`. |
 | `subscribe(name, subject, ?queue)` | Returns a subscription ID (string). |
 | `nextMessage(subId, timeout)` | Pulls one message synchronously. |
+| `subscriptionValid(subId)` | True if the subscription is still in the registry and the underlying NATS sub is live; lets polling loops distinguish a timeout from a connection that was closed underneath them. |
 | `unsubscribe(subId)` | Removes a subscription. |
 | `flush(name, timeout)` | Block until pending publishes are flushed. |
 | `isConnected(name)` | True if currently connected. |
@@ -128,7 +129,10 @@ exception-throwing primitives.
 
 ### Authentication
 
-`connect()` accepts the full set of NATS auth options:
+`connect()` accepts the full set of NATS auth options. **Exactly one** auth method may be set per
+call — passing more than one (e.g. `username`+`password` *and* a `token`) is rejected with a logged
+error and no connection is registered. `username` without `password` (or vice versa) is treated as
+no-auth and falls through.
 
 | Argument | Description |
 | --- | --- |
@@ -136,7 +140,7 @@ exception-throwing primitives.
 | `token` | Token auth. |
 | `credsFile` | Path to a NATS `.creds` file (NGS / decentralised auth). |
 | `nkeyFile` | Path to an NKey seed file. |
-| `tls` | Enable TLS with sane defaults (TLS 1.2+). |
+| `tls` | Enable TLS with sane defaults (TLS 1.2+). When `true`, server URLs of the form `nats://host:port` (or bare `host:port`) are rewritten to `tls://host:port` before dialing — the underlying nats.go client picks the dialer from the URL scheme, not from the `Secure` option alone. |
 
 ## Development
 
