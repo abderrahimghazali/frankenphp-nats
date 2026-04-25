@@ -32,14 +32,19 @@ Then, use [`xcaddy`](https://github.com/caddyserver/xcaddy) to build FrankenPHP 
 
 ```console
 CGO_ENABLED=1 \
-CGO_CFLAGS=$(php-config --includes) \
+CGO_CFLAGS="-D_GNU_SOURCE $(php-config --includes)" \
 CGO_LDFLAGS="$(php-config --ldflags) $(php-config --libs)" \
+XCADDY_GO_BUILD_FLAGS="-tags=nobadger,nomysql,nopgx,nowatcher" \
 xcaddy build \
     --output frankenphp \
-    --with github.com/abderrahimghazali/frankenphp-nats/build=./build \
+    --with github.com/abderrahimghazali/frankenphp-nats \
     --with github.com/dunglas/frankenphp/caddy
     # Add extra Caddy modules and FrankenPHP extensions here
 ```
+
+The repo ships the pre-generated C/PHP boilerplate (`nats.c`, `nats.h`, `nats_arginfo.h`,
+`nats.stub.php`, `nats_generated.go`) so consumers do not need a PHP build environment to run
+`xcaddy`.
 
 That's all — your custom FrankenPHP build now exposes the `Abderrahim\Nats` namespace to PHP.
 
@@ -153,8 +158,22 @@ GEN_STUB_SCRIPT=path/to/php-src/build/gen_stub.php \
   frankenphp extension-init nats.go
 ```
 
-This refreshes `build/nats.c`, `build/nats.h`, `build/nats_arginfo.h`, `build/nats.stub.php`, and `build/nats_generated.go`.
-The generated `build/` directory is committed so consumers of this extension don't need a PHP build environment.
+This refreshes `nats.c`, `nats.h`, `nats_arginfo.h`, `nats.stub.php`, and `nats_generated.go` in the
+repo root. All five files are committed.
+
+> [!IMPORTANT]
+>
+> FrankenPHP v1.12.2's generator emits `RETURN_EMPTY_ARRAY()` for functions whose stubs declare
+> `?array`. PHP's nullable-array semantics require `RETURN_NULL()`. Two `sed` patches need to be
+> reapplied after every regeneration:
+>
+> ```console
+> sed -i '/zend_array \*result = go_request/,/^}/{s/RETURN_EMPTY_ARRAY/RETURN_NULL/}' nats.c
+> sed -i '/zend_array \*result = go_nextMessage/,/^}/{s/RETURN_EMPTY_ARRAY/RETURN_NULL/}' nats.c
+> ```
+>
+> Without these, `request()` and `nextMessage()` return an empty array on timeout, and PHP code that
+> checks `$msg !== null` runs into "Undefined array key" warnings on every key access.
 
 Run the Go tests against a real `nats-server`:
 
