@@ -1,32 +1,32 @@
-# If you prefer the allow list template instead of the deny list, see community template:
-# https://github.com/github/gitignore/blob/main/community/Golang/Go.AllowList.gitignore
-#
-# Binaries for programs and plugins
+# Binaries
 *.exe
 *.exe~
 *.dll
 *.so
 *.dylib
+frankenphp
+testdata/testdata
 
-# Test binary, built with `go test -c`
+# Test artifacts
 *.test
-
-# Code coverage profiles and other test artifacts
 *.out
 coverage.*
 *.coverprofile
 profile.cov
 
-# Dependency directories (remove the comment below to include it)
-# vendor/
-
-# Go workspace file
+# Go workspace
 go.work
 go.work.sum
 
-# env file
+# Env / editor
 .env
+.idea/
+.vscode/
+.DS_Store
 
-# Editor/IDE
-# .idea/
-# .vscode/
+# Build leftovers
+.php-cs-fixer.cache
+
+# PHP source tarball used for the generator (kept out of git)
+php-src/
+php-*.tar.*
