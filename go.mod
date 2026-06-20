@@ -8,7 +8,7 @@ require (
 	github.com/dunglas/frankenphp/caddy v1.12.2
 	github.com/google/uuid v1.6.0
 	github.com/nats-io/nats.go v1.51.0
-	go.uber.org/zap v1.27.1
+	go.uber.org/zap v1.28.0
 )
 
 require (
